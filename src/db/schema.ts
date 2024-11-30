@@ -1,22 +1,22 @@
-import { relations } from 'drizzle-orm'
-import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
-import { randomUUID } from 'node:crypto'
+import { pgTable, text, timestamp, uuid, } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm';
 
-export const users = sqliteTable('users', {
-    id: text().$defaultFn(() => randomUUID()).primaryKey(),
-    name: text(),
-    username: text(),
+export const users = pgTable('users', {
+    id: uuid().defaultRandom().primaryKey(),
+    name: text().notNull(),
+    username: text().notNull().unique(),
 })
 
 export const usersRelations = relations(users, ({ many }) => ({
     messages: many(messages)
 }))
 
-export const messages = sqliteTable('messages', {
-    id: text().$defaultFn(() => randomUUID()).primaryKey(),
-    message: text(),
-    ownerId: text(),
-    receptorId: text(),
+export const messages = pgTable('messages', {
+    id: uuid().defaultRandom().primaryKey(),
+    text: text().notNull(),
+    ownerId: uuid().notNull(),
+    receptorId: uuid().notNull(),
+    date: timestamp({ mode: 'date' }).defaultNow()
 })
 
 export const messagesRelations = relations(messages, ({ one }) => ({
