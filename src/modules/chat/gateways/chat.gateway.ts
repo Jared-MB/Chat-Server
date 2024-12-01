@@ -1,4 +1,4 @@
-import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway, WebSocketServer, } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
 import { MessageRepository } from '../repositories/message.repository';
@@ -34,12 +34,23 @@ export class ChatGateway implements OnGatewayDisconnect {
     return users
   }
 
+  private getUsersRoom(userId: string, otherUserId: string) {
+    return [userId, otherUserId].sort().join('-');
+  }
+
   @SubscribeMessage('join')
-  async handleJoin(@MessageBody() body: { userId: string }, @ConnectedSocket() socket: Socket) {
-    const messages = await this.messageRepository.findAllByUser(body.userId);
+  async handleJoin(@MessageBody() body: { userId: string, otherUserId: string }, @ConnectedSocket() socket: Socket) {
+    const roomId = this.getUsersRoom(body.userId, body.otherUserId);
+
+    socket.join(roomId);
+
+    const messages = await this.messageRepository.findAllByReceptor(body.userId, body.otherUserId);
     const user = (await this.userRepository.findById(body.userId))[0];
+    const otherUser = (await this.userRepository.findById(body.otherUserId))[0];
+
     this.connectedUsers.set(socket.id, body.userId);
-    socket.emit('join', { user, messages });
+
+    socket.emit('join', { user, messages, otherUser });
   }
 
   @SubscribeMessage('users')
@@ -49,7 +60,7 @@ export class ChatGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('message')
-  async handleMessage(@MessageBody() body: { username: string, message: string, userId: string }) {
+  async handleMessage(@MessageBody() body: { username: string, message: string, userId: string, receptorId: string }) {
 
     const users = await this.userRepository.findById(body.userId);
     let user;
@@ -61,8 +72,10 @@ export class ChatGateway implements OnGatewayDisconnect {
       user = users[0]
     }
 
-    const message = await this.messageRepository.create({ text: body.message, ownerId: user.id, receptorId: user.id });
+    const message = await this.messageRepository.create({ text: body.message, ownerId: user.id, receptorId: body.receptorId });
 
-    this.server.emit('message', message);
+    const roomId = this.getUsersRoom(body.userId, body.receptorId);
+
+    this.server.to(roomId).emit('message', message);
   }
 }
