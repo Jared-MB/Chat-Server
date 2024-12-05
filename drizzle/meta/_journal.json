@@ -15,6 +15,20 @@
       "when": 1732891098149,
       "tag": "0001_thankful_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1733067550257,
+      "tag": "0002_soft_madripoor",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1733067965912,
+      "tag": "0003_orange_tag",
+      "breakpoints": true
     }
   ]
 }
