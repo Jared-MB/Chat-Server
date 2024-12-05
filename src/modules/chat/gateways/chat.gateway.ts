@@ -2,7 +2,7 @@ import { ConnectedSocket, MessageBody, OnGatewayDisconnect, SubscribeMessage, We
 import { Server, Socket } from 'socket.io';
 
 import { MessageRepository } from '../repositories/message.repository';
-import { UserRepository } from '../repositories/user.repository';
+import { UserRepository } from '../../user/repositories/user.repository';
 
 @WebSocketGateway({
   cors: {
@@ -60,16 +60,12 @@ export class ChatGateway implements OnGatewayDisconnect {
   }
 
   @SubscribeMessage('message')
-  async handleMessage(@MessageBody() body: { username: string, message: string, userId: string, receptorId: string }) {
+  async handleMessage(@MessageBody() body: { message: string, userId: string, receptorId: string }) {
 
-    const users = await this.userRepository.findById(body.userId);
-    let user;
+    const user = (await this.userRepository.findById(body.userId))[0]
 
-    if (users.length === 0) {
-      user = (await this.userRepository.create({ username: body.username, name: body.username }))[0];
-    }
-    else {
-      user = users[0]
+    if (!user) {
+      return
     }
 
     const message = await this.messageRepository.create({ text: body.message, ownerId: user.id, receptorId: body.receptorId });
