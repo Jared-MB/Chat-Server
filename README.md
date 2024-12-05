@@ -51,23 +51,6 @@ And to apply the migrations with:
 npx drizzle-kit migrate
 ```
 
-## TODO
-
-- [x] Add DB models
-  - [x] User
-    - username
-    - name
-    - id
-  - [x] Message
-    - message
-    - owner_id
-    - receptor_id
-    - id
-- [ ] Create a user service to handle user creation and retrieval
-- [ ] Create a message service to handle message creation and retrieval
-- [ ] Create a chat service to handle chat functionality
-- [ ] Improve the chat gateway to handle messages creation and retrieval
-
 ## Implementation Diagram
 
 ![Diagram](./Diagram.png)
