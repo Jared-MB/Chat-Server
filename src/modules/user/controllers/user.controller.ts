@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Post, UseInterceptors, } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Post, UseInterceptors, } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
 import { ResponseInterceptor } from 'src/interceptors/response.interceptor';
 
@@ -8,6 +8,13 @@ export class UserController {
     constructor(
         private readonly userRepository: UserRepository,
     ) { }
+
+    @UseInterceptors(ResponseInterceptor)
+    @Get(':id')
+    async getUser(@Param('id') id: string) {
+        const user = await this.userRepository.findByExternalId(id)
+        return user
+    }
 
     @UseInterceptors(ResponseInterceptor)
     @Post()
